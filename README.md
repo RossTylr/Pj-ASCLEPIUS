@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/images/logo.jpeg" alt="TriageDrills Logo" width="200"/>
+</p>
+
 # TriageDrills
 
 **Offline-first tactical casualty care triage application aligned to TCCC(UK) ASM doctrine.**
