@@ -1,10 +1,15 @@
 /// Combat-optimised application theme.
-/// 
+///
 /// Designed for use under stress with:
 /// - High contrast colours
 /// - Large touch targets
 /// - Glove-friendly sizing
 /// - Night vision compatibility (dark mode)
+///
+/// Colour scheme inspired by Pj ASCLEPIUS branding:
+/// - Cyan/teal primary accent
+/// - Magenta/pink secondary
+/// - Navy dark tones
 library;
 
 import 'package:flutter/material.dart';
@@ -12,34 +17,37 @@ import 'package:flutter/material.dart';
 /// Application theme configuration.
 class AppTheme {
   AppTheme._();
-  
-  // --- Colour Palette ---
-  
-  /// Primary dark background - night vision friendly
-  static const Color backgroundDark = Color(0xFF0D0D0D);
-  
+
+  // --- Colour Palette (Pj ASCLEPIUS Branding) ---
+
+  /// Primary dark background - deep navy
+  static const Color backgroundDark = Color(0xFF0A1628);
+
   /// Surface colour for cards/containers
-  static const Color surfaceDark = Color(0xFF1A1A1A);
-  
+  static const Color surfaceDark = Color(0xFF12233D);
+
   /// Elevated surface
-  static const Color surfaceElevated = Color(0xFF252525);
-  
-  /// Primary accent - high visibility
-  static const Color primaryAccent = Color(0xFF00C853);
-  
+  static const Color surfaceElevated = Color(0xFF1A3050);
+
+  /// Primary accent - cyan/teal from logo caduceus
+  static const Color primaryAccent = Color(0xFF00D4E5);
+
+  /// Secondary accent - magenta/pink from logo caduceus
+  static const Color secondaryAccent = Color(0xFFE91E8C);
+
   /// Warning/caution
   static const Color warning = Color(0xFFFFAB00);
-  
-  /// Critical/danger
-  static const Color danger = Color(0xFFFF1744);
-  
-  /// Information
-  static const Color info = Color(0xFF2196F3);
-  
+
+  /// Critical/danger - uses secondary magenta
+  static const Color danger = Color(0xFFE91E8C);
+
+  /// Information - uses primary cyan
+  static const Color info = Color(0xFF00D4E5);
+
   /// Text colours
   static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFB0B0B0);
-  static const Color textMuted = Color(0xFF707070);
+  static const Color textSecondary = Color(0xFFB8C5D6);
+  static const Color textMuted = Color(0xFF6B7D94);
   
   // --- Triage Category Colours ---
   
@@ -48,13 +56,13 @@ class AppTheme {
   static const Color triageP3 = Color(0xFF00E676); // Green - Delayed
   static const Color triageDead = Color(0xFF424242); // Grey - Dead
   
-  // --- MARCH Component Colours ---
-  
-  static const Color marchM = Color(0xFFFF1744); // Red - Massive bleeding
-  static const Color marchA = Color(0xFF2196F3); // Blue - Airway
-  static const Color marchR = Color(0xFF00BCD4); // Cyan - Respiratory
-  static const Color marchC = Color(0xFFFF9100); // Orange - Circulation
-  static const Color marchH = Color(0xFF9C27B0); // Purple - Head/Hypothermia
+  // --- MARCH Component Colours (branded) ---
+
+  static const Color marchM = Color(0xFFE91E8C); // Magenta - Massive bleeding
+  static const Color marchA = Color(0xFF00D4E5); // Cyan - Airway
+  static const Color marchR = Color(0xFF00B4D8); // Teal - Respiratory
+  static const Color marchC = Color(0xFFFFAB00); // Amber - Circulation
+  static const Color marchH = Color(0xFFAF52DE); // Purple - Head/Hypothermia
   
   // --- Sizing (Combat-friendly) ---
   
@@ -158,7 +166,8 @@ class AppTheme {
     
     colorScheme: const ColorScheme.dark(
       primary: primaryAccent,
-      secondary: info,
+      secondary: secondaryAccent,
+      tertiary: info,
       surface: surfaceDark,
       error: danger,
       onPrimary: backgroundDark,
