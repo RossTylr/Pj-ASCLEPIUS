@@ -1,0 +1,591 @@
+{
+  "version": "1.0.0",
+  "doctrine_source": "TCCC(UK) ASM Aide Memoire Mar 25 / Trainer Manual v1.1 May 25",
+  "last_updated": "2025-01-01",
+  
+  "drills": {
+    "master": {
+      "id": "master",
+      "name": "Master Drill",
+      "description": "Initial assessment and care under fire",
+      "nodes": [
+        {
+          "id": "master_start",
+          "type": "decision",
+          "title": "MASTER DRILL",
+          "prompt": "Are you under effective enemy fire?",
+          "options": [
+            {"label": "YES", "next": "master_under_fire"},
+            {"label": "NO", "next": "master_safe_approach"}
+          ]
+        },
+        {
+          "id": "master_under_fire",
+          "type": "instruction",
+          "title": "CARE UNDER FIRE",
+          "prompt": "Return fire and take cover. Direct casualty to cover if able.",
+          "warnings": ["Win the firefight first"],
+          "next": "master_limb_bleeding_check"
+        },
+        {
+          "id": "master_limb_bleeding_check",
+          "type": "decision",
+          "title": "BLEEDING CHECK",
+          "prompt": "Is there severe limb bleeding? (Self or buddy)",
+          "options": [
+            {"label": "YES", "next": "master_tourniquet"},
+            {"label": "NO", "next": "master_conscious_check"}
+          ]
+        },
+        {
+          "id": "master_tourniquet",
+          "type": "action",
+          "title": "APPLY TOURNIQUET",
+          "prompt": "Apply tourniquet HIGH and TIGHT on limb",
+          "actions": ["Place 2-3 inches above wound", "NOT over a joint", "Tighten until bleeding stops", "Note the time"],
+          "intervention_type": "TOURNIQUET",
+          "next": "master_conscious_check"
+        },
+        {
+          "id": "master_conscious_check",
+          "type": "decision",
+          "title": "CONSCIOUSNESS",
+          "prompt": "Is the casualty conscious?",
+          "options": [
+            {"label": "YES", "next": "master_move_to_cover"},
+            {"label": "NO", "next": "master_unconscious_position"}
+          ]
+        },
+        {
+          "id": "master_unconscious_position",
+          "type": "action",
+          "title": "POSITION CASUALTY",
+          "prompt": "Roll casualty FACE DOWN if accessible",
+          "actions": ["Protects airway", "Allows drainage"],
+          "next": "master_move_to_cover"
+        },
+        {
+          "id": "master_move_to_cover",
+          "type": "instruction",
+          "title": "MOVE TO COVER",
+          "prompt": "Move casualty to cover when tactically safe",
+          "next": "master_safe_approach"
+        },
+        {
+          "id": "master_safe_approach",
+          "type": "decision",
+          "title": "CASUALTY COUNT",
+          "prompt": "Are there multiple casualties?",
+          "options": [
+            {"label": "YES - Multiple", "next": "drill_1_start"},
+            {"label": "NO - Single casualty", "next": "drill_2_start"}
+          ]
+        }
+      ]
+    },
+    
+    "drill_1": {
+      "id": "drill_1",
+      "name": "Drill 1: Multiple Casualty Triage",
+      "description": "10-second triage for multiple casualties",
+      "nodes": [
+        {
+          "id": "drill_1_start",
+          "type": "instruction",
+          "title": "TRIAGE",
+          "prompt": "Perform 10-second triage on each casualty. Mark and move on.",
+          "next": "drill_1_walk_check"
+        },
+        {
+          "id": "drill_1_walk_check",
+          "type": "decision",
+          "title": "TRIAGE STEP 1",
+          "prompt": "Can the casualty WALK?",
+          "options": [
+            {"label": "YES", "next": "drill_1_assign_p3"},
+            {"label": "NO", "next": "drill_1_breathing_check"}
+          ]
+        },
+        {
+          "id": "drill_1_assign_p3",
+          "type": "triage_assignment",
+          "title": "P3 - DELAYED",
+          "prompt": "Mark casualty as P3",
+          "category": "P3",
+          "next": "drill_1_more_casualties"
+        },
+        {
+          "id": "drill_1_breathing_check",
+          "type": "decision",
+          "title": "TRIAGE STEP 2",
+          "prompt": "Is the casualty BREATHING?",
+          "options": [
+            {"label": "YES", "next": "drill_1_response_check"},
+            {"label": "NO", "next": "drill_1_assign_dead"}
+          ]
+        },
+        {
+          "id": "drill_1_assign_dead",
+          "type": "triage_assignment",
+          "title": "DEAD",
+          "prompt": "Mark casualty as DEAD",
+          "category": "DEAD",
+          "next": "drill_1_more_casualties"
+        },
+        {
+          "id": "drill_1_response_check",
+          "type": "decision",
+          "title": "TRIAGE STEP 3",
+          "prompt": "Does the casualty RESPOND to commands?",
+          "options": [
+            {"label": "YES", "next": "drill_1_assign_p2"},
+            {"label": "NO", "next": "drill_1_assign_p1"}
+          ]
+        },
+        {
+          "id": "drill_1_assign_p2",
+          "type": "triage_assignment",
+          "title": "P2 - URGENT",
+          "prompt": "Mark casualty as P2",
+          "category": "P2",
+          "next": "drill_1_more_casualties"
+        },
+        {
+          "id": "drill_1_assign_p1",
+          "type": "triage_assignment",
+          "title": "P1 - IMMEDIATE",
+          "prompt": "Mark casualty as P1",
+          "category": "P1",
+          "next": "drill_1_more_casualties"
+        },
+        {
+          "id": "drill_1_more_casualties",
+          "type": "decision",
+          "title": "MORE CASUALTIES?",
+          "prompt": "Are there more casualties to triage?",
+          "options": [
+            {"label": "YES", "next": "drill_1_walk_check"},
+            {"label": "NO - Triage Complete", "next": "drill_1_select_casualty"}
+          ]
+        },
+        {
+          "id": "drill_1_select_casualty",
+          "type": "casualty_selection",
+          "title": "SELECT CASUALTY",
+          "prompt": "Select casualty to treat (P1 first)",
+          "next": "drill_2_start"
+        }
+      ]
+    },
+    
+    "drill_2": {
+      "id": "drill_2",
+      "name": "Drill 2: Massive Bleeding",
+      "march_component": "M",
+      "nodes": [
+        {
+          "id": "drill_2_start",
+          "type": "instruction",
+          "title": "MASSIVE BLEEDING",
+          "prompt": "Assess for life-threatening bleeding. Visual sweep of limbs and junctions.",
+          "next": "drill_2_limb_check"
+        },
+        {
+          "id": "drill_2_limb_check",
+          "type": "decision",
+          "title": "LIMB BLEEDING",
+          "prompt": "Is there life-threatening LIMB bleeding?",
+          "options": [
+            {"label": "YES", "next": "drill_2_tourniquet"},
+            {"label": "NO", "next": "drill_2_junction_check"}
+          ]
+        },
+        {
+          "id": "drill_2_tourniquet",
+          "type": "action",
+          "title": "TOURNIQUET",
+          "prompt": "Apply tourniquet HIGH and TIGHT",
+          "actions": ["Place 2-3 inches above wound", "NOT over joint", "Tighten until bleeding stops", "Note TIME"],
+          "intervention_type": "TOURNIQUET",
+          "next": "drill_2_junction_check"
+        },
+        {
+          "id": "drill_2_junction_check",
+          "type": "decision",
+          "title": "JUNCTIONAL BLEEDING",
+          "prompt": "Is there junctional bleeding? (Groin, axilla, neck)",
+          "options": [
+            {"label": "YES", "next": "drill_2_wound_pack"},
+            {"label": "NO", "next": "drill_2_pelvic_check"}
+          ]
+        },
+        {
+          "id": "drill_2_wound_pack",
+          "type": "action",
+          "title": "WOUND PACKING",
+          "prompt": "Pack wound and apply direct pressure",
+          "actions": ["Pack tightly with gauze", "Apply firm pressure 3+ minutes", "Do not release to check"],
+          "intervention_type": "WOUND_PACKING",
+          "next": "drill_2_pelvic_check"
+        },
+        {
+          "id": "drill_2_pelvic_check",
+          "type": "decision",
+          "title": "PELVIC INJURY",
+          "prompt": "Suspected pelvic fracture?",
+          "options": [
+            {"label": "YES", "next": "drill_2_pelvic_binder"},
+            {"label": "NO", "next": "drill_2_complete"}
+          ]
+        },
+        {
+          "id": "drill_2_pelvic_binder",
+          "type": "action",
+          "title": "PELVIC BINDER",
+          "prompt": "Apply pelvic binder at greater trochanters",
+          "intervention_type": "PELVIC_BINDER",
+          "next": "drill_2_complete"
+        },
+        {
+          "id": "drill_2_complete",
+          "type": "checkpoint",
+          "title": "M - COMPLETE",
+          "prompt": "Massive bleeding assessment complete",
+          "march_component": "M",
+          "next": "drill_3_start"
+        }
+      ]
+    },
+    
+    "drill_3": {
+      "id": "drill_3",
+      "name": "Drill 3: Airway",
+      "march_component": "A",
+      "nodes": [
+        {
+          "id": "drill_3_start",
+          "type": "decision",
+          "title": "AIRWAY",
+          "prompt": "Is the casualty CONSCIOUS and talking?",
+          "options": [
+            {"label": "YES - Airway clear", "next": "drill_6_start"},
+            {"label": "NO - Unconscious", "next": "drill_3_open_airway"}
+          ]
+        },
+        {
+          "id": "drill_3_open_airway",
+          "type": "action",
+          "title": "OPEN AIRWAY",
+          "prompt": "Head tilt, chin lift. Check for obstruction.",
+          "next": "drill_3_breathing_check"
+        },
+        {
+          "id": "drill_3_breathing_check",
+          "type": "decision",
+          "title": "BREATHING CHECK",
+          "prompt": "Is the casualty breathing? (Look, listen, feel 10 sec)",
+          "options": [
+            {"label": "YES", "next": "drill_3_recovery"},
+            {"label": "NO", "next": "drill_3_not_breathing"}
+          ]
+        },
+        {
+          "id": "drill_3_recovery",
+          "type": "action",
+          "title": "RECOVERY POSITION",
+          "prompt": "Place in recovery position (3/4 prone). Consider NPA if trained.",
+          "intervention_type": "RECOVERY_POSITION",
+          "next": "drill_3_complete"
+        },
+        {
+          "id": "drill_3_not_breathing",
+          "type": "instruction",
+          "title": "NOT BREATHING",
+          "prompt": "Reposition airway and reassess. Clear visible obstruction if present.",
+          "warnings": ["Limited options without advanced equipment"],
+          "next": "drill_3_complete"
+        },
+        {
+          "id": "drill_3_complete",
+          "type": "checkpoint",
+          "title": "A - COMPLETE",
+          "prompt": "Airway assessment complete",
+          "march_component": "A",
+          "next": "drill_6_start"
+        }
+      ]
+    },
+    
+    "drill_6": {
+      "id": "drill_6",
+      "name": "Drill 6: Respiratory",
+      "march_component": "R",
+      "nodes": [
+        {
+          "id": "drill_6_start",
+          "type": "instruction",
+          "title": "RESPIRATORY",
+          "prompt": "Expose and assess chest. Look for wounds, asymmetry.",
+          "next": "drill_6_chest_wound"
+        },
+        {
+          "id": "drill_6_chest_wound",
+          "type": "decision",
+          "title": "CHEST WOUND",
+          "prompt": "Is there an open/penetrating chest wound?",
+          "options": [
+            {"label": "YES", "next": "drill_6_chest_seal"},
+            {"label": "NO", "next": "drill_6_tension_check"}
+          ]
+        },
+        {
+          "id": "drill_6_chest_seal",
+          "type": "action",
+          "title": "CHEST SEAL",
+          "prompt": "Apply chest seal. Check for exit wound - seal both.",
+          "actions": ["Apply vented seal (preferred)", "Position wounded side DOWN"],
+          "intervention_type": "CHEST_SEAL",
+          "next": "drill_6_tension_check"
+        },
+        {
+          "id": "drill_6_tension_check",
+          "type": "decision",
+          "title": "TENSION PNEUMOTHORAX",
+          "prompt": "Signs of tension? (Increasing distress, tracheal deviation, absent sounds)",
+          "options": [
+            {"label": "YES", "next": "drill_7_start"},
+            {"label": "NO", "next": "drill_6_complete"}
+          ]
+        },
+        {
+          "id": "drill_6_complete",
+          "type": "checkpoint",
+          "title": "R - COMPLETE",
+          "prompt": "Respiratory assessment complete",
+          "march_component": "R",
+          "next": "drill_8_start"
+        }
+      ]
+    },
+    
+    "drill_7": {
+      "id": "drill_7",
+      "name": "Drill 7: Needle Decompression",
+      "march_component": "R",
+      "role_required": "medic",
+      "nodes": [
+        {
+          "id": "drill_7_start",
+          "type": "decision",
+          "title": "NEEDLE DECOMPRESSION",
+          "prompt": "Are you trained for needle decompression?",
+          "options": [
+            {"label": "YES", "next": "drill_7_perform"},
+            {"label": "NO", "next": "drill_6_complete"}
+          ]
+        },
+        {
+          "id": "drill_7_perform",
+          "type": "action",
+          "title": "DECOMPRESS",
+          "prompt": "2nd ICS, mid-clavicular line. 14G needle 8cm+. Note time.",
+          "actions": ["Insert over top of 3rd rib", "Listen for hiss", "Secure in place"],
+          "intervention_type": "NEEDLE_DECOMPRESSION",
+          "warnings": ["Only if signs clearly indicate tension"],
+          "next": "drill_6_complete"
+        }
+      ]
+    },
+    
+    "drill_8": {
+      "id": "drill_8",
+      "name": "Drill 8: Circulation",
+      "march_component": "C",
+      "nodes": [
+        {
+          "id": "drill_8_start",
+          "type": "instruction",
+          "title": "CIRCULATION",
+          "prompt": "Assess for shock: pale/cold skin, weak pulse, altered consciousness",
+          "next": "drill_8_shock_check"
+        },
+        {
+          "id": "drill_8_shock_check",
+          "type": "decision",
+          "title": "SHOCK SIGNS",
+          "prompt": "Are shock signs present?",
+          "options": [
+            {"label": "YES", "next": "drill_8_manage"},
+            {"label": "NO", "next": "drill_8_complete"}
+          ]
+        },
+        {
+          "id": "drill_8_manage",
+          "type": "action",
+          "title": "MANAGE SHOCK",
+          "prompt": "Stop bleeding, elevate legs, keep warm, reassure",
+          "actions": ["Elevate legs if no spinal injury", "Keep casualty warm", "Do NOT give food/drink"],
+          "next": "drill_8_complete"
+        },
+        {
+          "id": "drill_8_complete",
+          "type": "checkpoint",
+          "title": "C - COMPLETE",
+          "prompt": "Circulation assessment complete",
+          "march_component": "C",
+          "next": "drill_9_start"
+        }
+      ]
+    },
+    
+    "drill_9": {
+      "id": "drill_9",
+      "name": "Drill 9: Head Injury",
+      "march_component": "H",
+      "nodes": [
+        {
+          "id": "drill_9_start",
+          "type": "instruction",
+          "title": "HEAD INJURY",
+          "prompt": "Assess consciousness level (AVPU). Check pupils.",
+          "next": "drill_9_avpu"
+        },
+        {
+          "id": "drill_9_avpu",
+          "type": "single_select",
+          "title": "AVPU",
+          "prompt": "Consciousness level:",
+          "options": ["A - Alert", "V - Voice", "P - Pain", "U - Unresponsive"],
+          "next": "drill_9_complete"
+        },
+        {
+          "id": "drill_9_complete",
+          "type": "checkpoint",
+          "title": "HEAD COMPLETE",
+          "prompt": "Head injury assessment complete",
+          "next": "drill_11_start"
+        }
+      ]
+    },
+    
+    "drill_11": {
+      "id": "drill_11",
+      "name": "Drill 11: Hypothermia Prevention",
+      "march_component": "H",
+      "nodes": [
+        {
+          "id": "drill_11_start",
+          "type": "action",
+          "title": "HYPOTHERMIA PREVENTION",
+          "prompt": "Prevent heat loss in ALL casualties",
+          "actions": ["Remove wet clothing", "Insulate from ground", "Cover with blanket", "Cover head", "Warm fluids if conscious"],
+          "intervention_type": "HYPOTHERMIA_MGMT",
+          "next": "drill_11_complete"
+        },
+        {
+          "id": "drill_11_complete",
+          "type": "checkpoint",
+          "title": "H - COMPLETE",
+          "prompt": "MARCH sequence complete",
+          "march_component": "H",
+          "next": "march_complete"
+        },
+        {
+          "id": "march_complete",
+          "type": "decision",
+          "title": "MARCH COMPLETE",
+          "prompt": "What next?",
+          "options": [
+            {"label": "Request MEDEVAC", "next": "drill_12_start"},
+            {"label": "Continue monitoring", "next": "drill_13_start"},
+            {"label": "Return to triage", "next": "drill_1_select_casualty"}
+          ]
+        }
+      ]
+    },
+    
+    "drill_12": {
+      "id": "drill_12",
+      "name": "Drill 12: CASREP",
+      "nodes": [
+        {
+          "id": "drill_12_start",
+          "type": "casrep_form",
+          "title": "CASREP",
+          "prompt": "Complete Casualty Report",
+          "fields": ["callsign", "grid_ref", "casualty_count", "p1_count", "p2_count", "p3_count", "urgency", "life_threats"],
+          "next": "drill_12_complete"
+        },
+        {
+          "id": "drill_12_complete",
+          "type": "checkpoint",
+          "title": "CASREP COMPLETE",
+          "prompt": "CASREP ready. Export or continue to pre-evac care.",
+          "next": "drill_13_start"
+        }
+      ]
+    },
+    
+    "drill_13": {
+      "id": "drill_13",
+      "name": "Drill 13: Pre-Evacuation Care",
+      "nodes": [
+        {
+          "id": "drill_13_start",
+          "type": "instruction",
+          "title": "PRE-EVAC CARE",
+          "prompt": "Continue monitoring. Regular MARCH reassessment.",
+          "next": "drill_13_checklist"
+        },
+        {
+          "id": "drill_13_checklist",
+          "type": "multi_select",
+          "title": "MONITORING",
+          "prompt": "Complete checks:",
+          "options": ["Tourniquet time checked", "Dressings intact", "Chest seal secure", "Casualty warm", "Airway maintained"],
+          "next": "drill_13_reassess"
+        },
+        {
+          "id": "drill_13_reassess",
+          "type": "decision",
+          "title": "REASSESSMENT",
+          "prompt": "Any deterioration?",
+          "options": [
+            {"label": "YES - Reassess MARCH", "next": "drill_2_start"},
+            {"label": "NO - Continue", "next": "drill_13_complete"}
+          ]
+        },
+        {
+          "id": "drill_13_complete",
+          "type": "checkpoint",
+          "title": "MONITORING COMPLETE",
+          "prompt": "Assessment recorded",
+          "options": [
+            {"label": "Continue monitoring", "next": "drill_13_checklist"},
+            {"label": "Casualty handed over", "next": "end"},
+            {"label": "Other casualties", "next": "drill_1_select_casualty"}
+          ]
+        }
+      ]
+    }
+  },
+  
+  "intervention_types": {
+    "TOURNIQUET": {"name": "Tourniquet", "fields": ["limb", "time_applied"], "time_critical": true},
+    "CHEST_SEAL": {"name": "Chest Seal", "fields": ["side", "type", "time_applied"]},
+    "NEEDLE_DECOMPRESSION": {"name": "Needle Decompression", "fields": ["side", "time"], "role_required": "medic"},
+    "NPA": {"name": "Nasopharyngeal Airway", "fields": ["size", "time"]},
+    "RECOVERY_POSITION": {"name": "Recovery Position", "fields": ["position", "time"]},
+    "WOUND_PACKING": {"name": "Wound Packing", "fields": ["location", "time"]},
+    "PELVIC_BINDER": {"name": "Pelvic Binder", "fields": ["time"]},
+    "IV_IO": {"name": "IV/IO Access", "fields": ["site", "type", "fluid"], "role_required": "medic"},
+    "HYPOTHERMIA_MGMT": {"name": "Hypothermia Management", "fields": ["interventions"]}
+  },
+  
+  "triage_categories": {
+    "P1": {"name": "Immediate", "color": "#FF0000"},
+    "P2": {"name": "Urgent", "color": "#FFA500"},
+    "P3": {"name": "Delayed", "color": "#00FF00"},
+    "DEAD": {"name": "Dead", "color": "#000000"}
+  }
+}
