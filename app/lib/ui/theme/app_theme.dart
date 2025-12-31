@@ -63,7 +63,18 @@ class AppTheme {
   static const Color marchR = Color(0xFF00B4D8); // Teal - Respiratory
   static const Color marchC = Color(0xFFFFAB00); // Amber - Circulation
   static const Color marchH = Color(0xFFAF52DE); // Purple - Head/Hypothermia
-  
+
+  // --- Content Box Types (Aide Memoire colours) ---
+
+  /// Action box - steps to perform (Blue)
+  static const Color boxAction = Color(0xFF0066CC);
+
+  /// Advice box - guidance/information (Yellow/Amber)
+  static const Color boxAdvice = Color(0xFFFFCC00);
+
+  /// Warning box - critical safety info (Red)
+  static const Color boxWarning = Color(0xFFCC0000);
+
   // --- Sizing (Combat-friendly) ---
   
   /// Minimum touch target size (48dp Android guideline, we use larger)
@@ -293,6 +304,24 @@ class AppTheme {
       'C' => marchC,
       'H' => marchH,
       _ => textMuted,
+    };
+  }
+
+  /// Get colour for content box type.
+  static Color getBoxTypeColor(String boxType) {
+    return switch (boxType.toLowerCase()) {
+      'action' => boxAction,
+      'advice' => boxAdvice,
+      'warning' => boxWarning,
+      _ => surfaceElevated,
+    };
+  }
+
+  /// Get text colour for content box (ensures contrast).
+  static Color getBoxTextColor(String boxType) {
+    return switch (boxType.toLowerCase()) {
+      'advice' => backgroundDark, // Dark text on yellow
+      _ => textPrimary, // White text on blue/red
     };
   }
 }

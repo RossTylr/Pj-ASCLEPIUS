@@ -173,7 +173,24 @@
           "type": "casualty_selection",
           "title": "SELECT CASUALTY",
           "prompt": "Select casualty to treat (P1 first)",
+          "priority_order": ["P1", "P2", "P3"],
+          "show_treated": true,
+          "filter_options": [
+            {"label": "Untreated only", "filter": "untreated"},
+            {"label": "All casualties", "filter": "all"}
+          ],
           "next": "drill_2_start"
+        },
+        {
+          "id": "drill_1_all_treated",
+          "type": "decision",
+          "title": "ALL TREATED",
+          "prompt": "All casualties have received initial MARCH assessment",
+          "options": [
+            {"label": "Continue monitoring", "next": "drill_13_start"},
+            {"label": "Request MEDEVAC", "next": "drill_12_start"},
+            {"label": "Reassess a casualty", "next": "drill_1_select_casualty"}
+          ]
         }
       ]
     },
@@ -259,7 +276,7 @@
     
     "drill_3": {
       "id": "drill_3",
-      "name": "Drill 3: Airway",
+      "name": "Drill 3: Airway - Unconscious Casualty",
       "march_component": "A",
       "nodes": [
         {
@@ -268,8 +285,28 @@
           "title": "AIRWAY",
           "prompt": "Is the casualty CONSCIOUS and talking?",
           "options": [
-            {"label": "YES - Airway clear", "next": "drill_6_start"},
-            {"label": "NO - Unconscious", "next": "drill_3_open_airway"}
+            {"label": "YES - Airway clear", "next": "drill_3_complete"},
+            {"label": "NO - Unconscious", "next": "drill_3_spinal_check"}
+          ]
+        },
+        {
+          "id": "drill_3_spinal_check",
+          "type": "decision",
+          "title": "SPINAL INJURY?",
+          "prompt": "Is spinal injury suspected? (Mechanism, neck pain, neurological signs)",
+          "options": [
+            {"label": "YES - Spinal precautions", "next": "drill_4_start"},
+            {"label": "NO", "next": "drill_3_position_check"}
+          ]
+        },
+        {
+          "id": "drill_3_position_check",
+          "type": "decision",
+          "title": "CASUALTY POSITION",
+          "prompt": "Is the casualty face down or is the airway obstructed?",
+          "options": [
+            {"label": "YES - Face down/obstructed", "next": "drill_5_start"},
+            {"label": "NO - Accessible", "next": "drill_3_open_airway"}
           ]
         },
         {
@@ -293,8 +330,16 @@
           "id": "drill_3_recovery",
           "type": "action",
           "title": "RECOVERY POSITION",
-          "prompt": "Place in recovery position (3/4 prone). Consider NPA if trained.",
+          "prompt": "Place in 3/4 prone (recovery) position",
+          "actions": [
+            "Roll casualty onto their side",
+            "Upper leg bent at knee for stability",
+            "Lower arm extended, upper arm supporting head",
+            "Head tilted to allow drainage",
+            "Consider NPA if trained"
+          ],
           "intervention_type": "RECOVERY_POSITION",
+          "advice": ["3/4 prone protects airway and allows drainage"],
           "next": "drill_3_complete"
         },
         {
@@ -303,6 +348,32 @@
           "title": "NOT BREATHING",
           "prompt": "Reposition airway and reassess. Clear visible obstruction if present.",
           "warnings": ["Limited options without advanced equipment"],
+          "next": "drill_3_bls_decision"
+        },
+        {
+          "id": "drill_3_bls_decision",
+          "type": "decision",
+          "title": "CPR DECISION",
+          "prompt": "Still not breathing after airway repositioning. Consider CPR.",
+          "options": [
+            {"label": "CPR appropriate", "next": "drill_3_bls"},
+            {"label": "CPR not appropriate", "next": "drill_3_complete"}
+          ],
+          "warnings": ["Consider: tactical situation, resources, other casualties"]
+        },
+        {
+          "id": "drill_3_bls",
+          "type": "action",
+          "title": "BASIC LIFE SUPPORT",
+          "prompt": "Commence CPR if resources allow",
+          "actions": [
+            "30 chest compressions",
+            "2 rescue breaths",
+            "Continue 30:2 ratio",
+            "Reassess every 2 minutes"
+          ],
+          "intervention_type": "CPR",
+          "warnings": ["Tactical situation dependent", "Resource intensive"],
           "next": "drill_3_complete"
         },
         {
@@ -312,6 +383,146 @@
           "prompt": "Airway assessment complete",
           "march_component": "A",
           "next": "drill_6_start"
+        }
+      ]
+    },
+
+    "drill_4": {
+      "id": "drill_4",
+      "name": "Drill 4: Suspected Spinal Injury",
+      "march_component": "A",
+      "description": "TODO: Content needed from TCCC(UK) ASM TM Section 5.4",
+      "nodes": [
+        {
+          "id": "drill_4_start",
+          "type": "instruction",
+          "title": "SPINAL PRECAUTIONS",
+          "prompt": "[TODO: Reference needed] Maintain manual in-line stabilisation.",
+          "warnings": ["Do NOT use head tilt"],
+          "next": "drill_4_jaw_thrust"
+        },
+        {
+          "id": "drill_4_jaw_thrust",
+          "type": "action",
+          "title": "JAW THRUST",
+          "prompt": "[TODO: Reference needed] Open airway using jaw thrust manoeuvre.",
+          "actions": [
+            "[TODO: Step 1]",
+            "[TODO: Step 2]",
+            "[TODO: Step 3]"
+          ],
+          "next": "drill_4_breathing_check"
+        },
+        {
+          "id": "drill_4_breathing_check",
+          "type": "decision",
+          "title": "BREATHING CHECK",
+          "prompt": "Is the casualty breathing? (Look, listen, feel 10 sec)",
+          "options": [
+            {"label": "YES", "next": "drill_4_npa"},
+            {"label": "NO", "next": "drill_4_not_breathing"}
+          ]
+        },
+        {
+          "id": "drill_4_npa",
+          "type": "action",
+          "title": "NASOPHARYNGEAL AIRWAY",
+          "prompt": "[TODO: Reference needed] Consider NPA - preferred over OPA for spinal.",
+          "actions": [
+            "[TODO: NPA insertion steps]"
+          ],
+          "intervention_type": "NPA",
+          "next": "drill_4_complete"
+        },
+        {
+          "id": "drill_4_not_breathing",
+          "type": "instruction",
+          "title": "NOT BREATHING",
+          "prompt": "[TODO: Reference needed] Maintain jaw thrust, reassess.",
+          "warnings": ["Maintain spinal precautions"],
+          "next": "drill_4_bls_decision"
+        },
+        {
+          "id": "drill_4_bls_decision",
+          "type": "decision",
+          "title": "CPR DECISION",
+          "prompt": "Still not breathing. Consider CPR with spinal precautions.",
+          "options": [
+            {"label": "CPR appropriate", "next": "drill_4_bls"},
+            {"label": "CPR not appropriate", "next": "drill_4_complete"}
+          ],
+          "warnings": ["Consider: tactical situation, resources, other casualties"]
+        },
+        {
+          "id": "drill_4_bls",
+          "type": "action",
+          "title": "CPR WITH SPINAL PRECAUTIONS",
+          "prompt": "Commence CPR maintaining spinal alignment",
+          "actions": [
+            "Maintain jaw thrust during ventilations",
+            "30 chest compressions",
+            "2 rescue breaths via jaw thrust",
+            "Continue 30:2 ratio",
+            "Reassess every 2 minutes"
+          ],
+          "intervention_type": "CPR",
+          "warnings": ["Maintain spinal precautions throughout"],
+          "next": "drill_4_complete"
+        },
+        {
+          "id": "drill_4_complete",
+          "type": "checkpoint",
+          "title": "A - COMPLETE (SPINAL)",
+          "prompt": "Airway managed with spinal precautions",
+          "march_component": "A",
+          "next": "drill_6_start"
+        }
+      ]
+    },
+
+    "drill_5": {
+      "id": "drill_5",
+      "name": "Drill 5: Face Down / Obstructed Airway",
+      "march_component": "A",
+      "description": "TODO: Content needed from TCCC(UK) ASM TM Section 5.5",
+      "nodes": [
+        {
+          "id": "drill_5_start",
+          "type": "instruction",
+          "title": "OBSTRUCTED AIRWAY",
+          "prompt": "[TODO: Reference needed] Casualty face down or airway obstructed.",
+          "next": "drill_5_log_roll"
+        },
+        {
+          "id": "drill_5_log_roll",
+          "type": "action",
+          "title": "LOG ROLL",
+          "prompt": "[TODO: Reference needed] Log roll to assess airway.",
+          "actions": [
+            "[TODO: Log roll steps]"
+          ],
+          "next": "drill_5_clear_obstruction"
+        },
+        {
+          "id": "drill_5_clear_obstruction",
+          "type": "decision",
+          "title": "VISIBLE OBSTRUCTION?",
+          "prompt": "Is there visible obstruction in the airway?",
+          "options": [
+            {"label": "YES", "next": "drill_5_remove_obstruction"},
+            {"label": "NO", "next": "drill_3_open_airway"}
+          ]
+        },
+        {
+          "id": "drill_5_remove_obstruction",
+          "type": "action",
+          "title": "CLEAR OBSTRUCTION",
+          "prompt": "[TODO: Reference needed] Remove visible obstruction.",
+          "actions": [
+            "[TODO: Clearance steps]",
+            "Suction if available (medic)"
+          ],
+          "next": "drill_3_open_airway"
         }
       ]
     },
@@ -406,25 +617,46 @@
           "id": "drill_8_start",
           "type": "instruction",
           "title": "CIRCULATION",
-          "prompt": "Assess for shock: pale/cold skin, weak pulse, altered consciousness",
+          "prompt": "Assess for signs of shock",
+          "next": "drill_8_shock_checklist"
+        },
+        {
+          "id": "drill_8_shock_checklist",
+          "type": "multi_select",
+          "title": "SHOCK ASSESSMENT",
+          "prompt": "Check for shock signs (select all present):",
+          "options": [
+            "Pale, cold, clammy skin",
+            "Weak or rapid pulse",
+            "Altered consciousness",
+            "Capillary refill >2 seconds",
+            "Rapid shallow breathing",
+            "Anxiety or confusion"
+          ],
           "next": "drill_8_shock_check"
         },
         {
           "id": "drill_8_shock_check",
           "type": "decision",
-          "title": "SHOCK SIGNS",
-          "prompt": "Are shock signs present?",
+          "title": "SHOCK PRESENT?",
+          "prompt": "Based on assessment, are shock signs present?",
           "options": [
-            {"label": "YES", "next": "drill_8_manage"},
-            {"label": "NO", "next": "drill_8_complete"}
+            {"label": "YES - Shock signs present", "next": "drill_8_manage"},
+            {"label": "NO - No shock signs", "next": "drill_8_complete"}
           ]
         },
         {
           "id": "drill_8_manage",
           "type": "action",
           "title": "MANAGE SHOCK",
-          "prompt": "Stop bleeding, elevate legs, keep warm, reassure",
-          "actions": ["Elevate legs if no spinal injury", "Keep casualty warm", "Do NOT give food/drink"],
+          "prompt": "Treat shock",
+          "actions": [
+            "Stop any ongoing bleeding",
+            "Elevate legs (if no spinal injury)",
+            "Keep casualty warm",
+            "Reassure casualty",
+            "Do NOT give food or drink"
+          ],
           "next": "drill_8_complete"
         },
         {
@@ -463,11 +695,78 @@
           "type": "checkpoint",
           "title": "HEAD COMPLETE",
           "prompt": "Head injury assessment complete",
+          "next": "drill_10_start"
+        }
+      ]
+    },
+
+    "drill_10": {
+      "id": "drill_10",
+      "name": "Drill 10: Burns",
+      "march_component": "H",
+      "description": "TODO: Content needed from TCCC(UK) ASM TM Section 5.10",
+      "nodes": [
+        {
+          "id": "drill_10_start",
+          "type": "decision",
+          "title": "BURNS ASSESSMENT",
+          "prompt": "Are there burns present?",
+          "options": [
+            {"label": "YES", "next": "drill_10_remove_source"},
+            {"label": "NO", "next": "drill_11_start"}
+          ]
+        },
+        {
+          "id": "drill_10_remove_source",
+          "type": "action",
+          "title": "REMOVE FROM SOURCE",
+          "prompt": "[TODO: Reference needed] Remove casualty from burn source. Stop the burning process.",
+          "actions": [
+            "[TODO: Steps to stop burning]"
+          ],
+          "next": "drill_10_cool"
+        },
+        {
+          "id": "drill_10_cool",
+          "type": "action",
+          "title": "COOL BURNS",
+          "prompt": "[TODO: Reference needed] Cool burns with clean water if available.",
+          "actions": [
+            "[TODO: Cooling steps]",
+            "Do NOT use ice"
+          ],
+          "warnings": ["Do NOT use ice or very cold water"],
+          "next": "drill_10_cover"
+        },
+        {
+          "id": "drill_10_cover",
+          "type": "action",
+          "title": "COVER BURNS",
+          "prompt": "[TODO: Reference needed] Cover burns with cling film or clean dressing.",
+          "actions": [
+            "[TODO: Covering steps]"
+          ],
+          "intervention_type": "BURNS_DRESSING",
+          "next": "drill_10_tbsa"
+        },
+        {
+          "id": "drill_10_tbsa",
+          "type": "instruction",
+          "title": "ASSESS %TBSA",
+          "prompt": "[TODO: Reference needed] Estimate total body surface area affected using Rule of 9s.",
+          "next": "drill_10_complete"
+        },
+        {
+          "id": "drill_10_complete",
+          "type": "checkpoint",
+          "title": "BURNS COMPLETE",
+          "prompt": "Burns assessment complete",
+          "march_component": "H",
           "next": "drill_11_start"
         }
       ]
     },
-    
+
     "drill_11": {
       "id": "drill_11",
       "name": "Drill 11: Hypothermia Prevention",
@@ -535,6 +834,60 @@
           "type": "instruction",
           "title": "PRE-EVAC CARE",
           "prompt": "Continue monitoring. Regular MARCH reassessment.",
+          "next": "drill_13_tq_check"
+        },
+        {
+          "id": "drill_13_tq_check",
+          "type": "decision",
+          "title": "TOURNIQUET CHECK",
+          "prompt": "Has a tourniquet been in place for 2+ hours?",
+          "options": [
+            {"label": "YES", "next": "drill_13_tq_conversion"},
+            {"label": "NO", "next": "drill_13_checklist"},
+            {"label": "No tourniquet applied", "next": "drill_13_checklist"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_conversion",
+          "type": "decision",
+          "title": "CONVERSION ASSESSMENT",
+          "prompt": "Consider tourniquet conversion. Is the situation stable? (Not under fire, casualty stable, evacuation not imminent)",
+          "options": [
+            {"label": "YES - Attempt conversion", "next": "drill_13_tq_convert_steps"},
+            {"label": "NO - Leave tourniquet", "next": "drill_13_tq_document"}
+          ],
+          "warnings": ["Only convert if tactically safe and casualty stable"]
+        },
+        {
+          "id": "drill_13_tq_convert_steps",
+          "type": "action",
+          "title": "TOURNIQUET CONVERSION",
+          "prompt": "Attempt conversion to pressure dressing",
+          "actions": [
+            "Apply pressure dressing DISTAL to tourniquet",
+            "Slowly loosen tourniquet",
+            "Observe for bleeding return",
+            "If bleeding returns: re-tighten tourniquet immediately",
+            "If no bleeding: remove tourniquet, maintain pressure"
+          ],
+          "warnings": ["Be ready to re-tighten immediately"],
+          "next": "drill_13_tq_result"
+        },
+        {
+          "id": "drill_13_tq_result",
+          "type": "decision",
+          "title": "CONVERSION RESULT",
+          "prompt": "Was conversion successful?",
+          "options": [
+            {"label": "YES - Bleeding controlled", "next": "drill_13_tq_document"},
+            {"label": "NO - Tourniquet re-applied", "next": "drill_13_tq_document"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_document",
+          "type": "instruction",
+          "title": "DOCUMENT",
+          "prompt": "Document tourniquet status and any conversion attempt.",
           "next": "drill_13_checklist"
         },
         {
@@ -571,15 +924,67 @@
   },
   
   "intervention_types": {
-    "TOURNIQUET": {"name": "Tourniquet", "fields": ["limb", "time_applied"], "time_critical": true},
-    "CHEST_SEAL": {"name": "Chest Seal", "fields": ["side", "type", "time_applied"]},
-    "NEEDLE_DECOMPRESSION": {"name": "Needle Decompression", "fields": ["side", "time"], "role_required": "medic"},
-    "NPA": {"name": "Nasopharyngeal Airway", "fields": ["size", "time"]},
-    "RECOVERY_POSITION": {"name": "Recovery Position", "fields": ["position", "time"]},
-    "WOUND_PACKING": {"name": "Wound Packing", "fields": ["location", "time"]},
-    "PELVIC_BINDER": {"name": "Pelvic Binder", "fields": ["time"]},
-    "IV_IO": {"name": "IV/IO Access", "fields": ["site", "type", "fluid"], "role_required": "medic"},
-    "HYPOTHERMIA_MGMT": {"name": "Hypothermia Management", "fields": ["interventions"]}
+    "TOURNIQUET": {
+      "name": "Tourniquet",
+      "fields": ["limb", "time_applied"],
+      "time_critical": true,
+      "doc_prompt": "Record tourniquet time - critical for conversion decision"
+    },
+    "CHEST_SEAL": {
+      "name": "Chest Seal",
+      "fields": ["side", "type", "time_applied"],
+      "doc_prompt": "Note side(s) sealed and seal type"
+    },
+    "NEEDLE_DECOMPRESSION": {
+      "name": "Needle Decompression",
+      "fields": ["side", "time"],
+      "role_required": "medic",
+      "doc_prompt": "Record time and side of decompression"
+    },
+    "NPA": {
+      "name": "Nasopharyngeal Airway",
+      "fields": ["size", "time"],
+      "doc_prompt": "Record NPA size used"
+    },
+    "RECOVERY_POSITION": {
+      "name": "Recovery Position",
+      "fields": ["position", "time"]
+    },
+    "WOUND_PACKING": {
+      "name": "Wound Packing",
+      "fields": ["location", "time"],
+      "doc_prompt": "Record wound location and packing material"
+    },
+    "PELVIC_BINDER": {
+      "name": "Pelvic Binder",
+      "fields": ["time"],
+      "doc_prompt": "Record time of application"
+    },
+    "IV_IO": {
+      "name": "IV/IO Access",
+      "fields": ["site", "type", "fluid"],
+      "role_required": "medic",
+      "doc_prompt": "Record site, access type, and fluids given"
+    },
+    "HYPOTHERMIA_MGMT": {
+      "name": "Hypothermia Management",
+      "fields": ["interventions"]
+    },
+    "BURNS_DRESSING": {
+      "name": "Burns Dressing",
+      "fields": ["location", "tbsa_percent", "time"],
+      "doc_prompt": "Record burn location and estimated %TBSA"
+    },
+    "CPR": {
+      "name": "CPR",
+      "fields": ["start_time", "duration", "outcome"],
+      "doc_prompt": "Record CPR start time and duration"
+    },
+    "PAIN_RELIEF": {
+      "name": "Pain Relief",
+      "fields": ["medication", "dose", "route", "time"],
+      "doc_prompt": "Record medication, dose, route and time"
+    }
   },
   
   "triage_categories": {
@@ -587,5 +992,91 @@
     "P2": {"name": "Urgent", "color": "#FFA500"},
     "P3": {"name": "Delayed", "color": "#00FF00"},
     "DEAD": {"name": "Dead", "color": "#000000"}
+  },
+
+  "global_actions": {
+    "pain_relief": {
+      "id": "pain_relief",
+      "title": "PAIN RELIEF",
+      "description": "Administer pain relief (available anytime during MARCH)",
+      "intervention_type": "PAIN_RELIEF",
+      "prompts": [
+        {
+          "id": "pain_relief_assess",
+          "type": "decision",
+          "title": "PAIN ASSESSMENT",
+          "prompt": "Assess pain level and consciousness",
+          "options": [
+            {"label": "Conscious - can take oral", "next": "pain_relief_oral"},
+            {"label": "Conscious - IV/IM needed", "next": "pain_relief_iv"},
+            {"label": "Unconscious - defer", "next": "pain_relief_defer"}
+          ]
+        },
+        {
+          "id": "pain_relief_oral",
+          "type": "action",
+          "title": "ORAL ANALGESIA",
+          "prompt": "Administer oral pain relief if available",
+          "actions": [
+            "Check for allergies",
+            "Administer as per protocol",
+            "Document medication, dose, time"
+          ]
+        },
+        {
+          "id": "pain_relief_iv",
+          "type": "action",
+          "title": "IV/IM ANALGESIA",
+          "prompt": "Administer IV/IM pain relief (medic only)",
+          "actions": [
+            "Check for allergies",
+            "Establish access if needed",
+            "Administer as per protocol",
+            "Monitor for adverse effects",
+            "Document medication, dose, route, time"
+          ],
+          "role_required": "medic"
+        },
+        {
+          "id": "pain_relief_defer",
+          "type": "instruction",
+          "title": "DEFER ANALGESIA",
+          "prompt": "Pain relief deferred - casualty unconscious or airway not secure"
+        }
+      ]
+    }
+  },
+
+  "mist_template": {
+    "M": {
+      "label": "Mechanism",
+      "prompt": "How was the casualty injured?",
+      "auto_populate_from": ["incident.mechanism"]
+    },
+    "I": {
+      "label": "Injuries",
+      "prompt": "What injuries are present?",
+      "auto_populate_from": ["assessments", "interventions"]
+    },
+    "S": {
+      "label": "Signs",
+      "prompt": "Vital signs and observations",
+      "auto_populate_from": ["avpu", "shock_signs", "breathing_status"]
+    },
+    "T": {
+      "label": "Treatment",
+      "prompt": "What treatment has been given?",
+      "auto_populate_from": ["interventions"]
+    },
+    "A": {
+      "label": "Age",
+      "prompt": "Approximate age",
+      "auto_populate_from": ["casualty.age_class"]
+    },
+    "T2": {
+      "label": "Time",
+      "prompt": "Time of wounding",
+      "auto_populate_from": ["casualty.time_of_wounding"]
+    }
   }
 }
