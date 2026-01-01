@@ -11,6 +11,20 @@
       "nodes": [
         {
           "id": "master_start",
+          "type": "instruction",
+          "title": "SAFE",
+          "prompt": "Before approaching: Shout, Assess, Find cover, Evaluate threats",
+          "actions": [
+            "SHOUT - Call for help, alert team",
+            "ASSESS - Evaluate the scene for threats",
+            "FIND - Identify safe approach route",
+            "EVALUATE - Determine tactical situation"
+          ],
+          "advice": ["SAFE ensures rescuer safety before casualty approach"],
+          "next": "master_fire_check"
+        },
+        {
+          "id": "master_fire_check",
           "type": "decision",
           "title": "MASTER DRILL",
           "prompt": "Are you under effective enemy fire?",
@@ -93,7 +107,8 @@
           "id": "drill_1_start",
           "type": "instruction",
           "title": "TRIAGE",
-          "prompt": "Perform 10-second triage on each casualty. Mark and move on.",
+          "prompt": "Perform 10-second triage on each casualty. Use walking, talking, bleeding, breathing sequence. Mark and move on.",
+          "advice": ["Walking? → Talking? → Bleeding? → Breathing?"],
           "next": "drill_1_walk_check"
         },
         {
@@ -222,8 +237,28 @@
           "type": "action",
           "title": "TOURNIQUET",
           "prompt": "Apply tourniquet HIGH and TIGHT",
-          "actions": ["Place 2-3 inches above wound", "NOT over joint", "Tighten until bleeding stops", "Note TIME"],
+          "actions": ["Place 2-3 inches above wound", "NOT over joint", "Tighten until bleeding stops", "Note TIME", "Mark T + time on forehead"],
           "intervention_type": "TOURNIQUET",
+          "next": "drill_2_tq_recheck"
+        },
+        {
+          "id": "drill_2_tq_recheck",
+          "type": "decision",
+          "title": "BLEEDING CHECK",
+          "prompt": "Is bleeding controlled?",
+          "options": [
+            {"label": "YES - Bleeding stopped", "next": "drill_2_junction_check"},
+            {"label": "NO - Still bleeding", "next": "drill_2_second_tq"}
+          ]
+        },
+        {
+          "id": "drill_2_second_tq",
+          "type": "action",
+          "title": "2ND TOURNIQUET",
+          "prompt": "Apply second tourniquet proximal to first",
+          "actions": ["Apply 2nd tourniquet above the first (closer to body)", "Tighten until bleeding stops", "Note TIME of second tourniquet"],
+          "intervention_type": "TOURNIQUET",
+          "warnings": ["Two tourniquets may be needed for large limbs"],
           "next": "drill_2_junction_check"
         },
         {
@@ -241,7 +276,8 @@
           "type": "action",
           "title": "WOUND PACKING",
           "prompt": "Pack wound and apply direct pressure",
-          "actions": ["Pack tightly with gauze", "Apply firm pressure 3+ minutes", "Do not release to check"],
+          "actions": ["Pack tightly with gauze (haemostatic if available)", "Apply firm pressure 3+ minutes", "Do not release to check"],
+          "warnings": ["NEVER use haemostatic agents in chest or abdominal cavity - internal damage risk"],
           "intervention_type": "WOUND_PACKING",
           "next": "drill_2_pelvic_check"
         },
@@ -269,7 +305,18 @@
           "title": "M - COMPLETE",
           "prompt": "Massive bleeding assessment complete",
           "march_component": "M",
-          "next": "drill_3_start"
+          "next": "drill_2_consciousness"
+        },
+        {
+          "id": "drill_2_consciousness",
+          "type": "decision",
+          "title": "CONSCIOUSNESS CHECK",
+          "prompt": "Shake and shout. Is the casualty responsive?",
+          "options": [
+            {"label": "YES - Responsive", "next": "drill_3_start"},
+            {"label": "NO - Unresponsive", "next": "drill_3_start"}
+          ],
+          "advice": ["Check consciousness before proceeding to Airway"]
         }
       ]
     },
@@ -330,16 +377,17 @@
           "id": "drill_3_recovery",
           "type": "action",
           "title": "RECOVERY POSITION",
-          "prompt": "Place in 3/4 prone (recovery) position",
+          "prompt": "Place in 3/4 prone (recovery) position. Record AVPU level.",
           "actions": [
             "Roll casualty onto their side",
             "Upper leg bent at knee for stability",
             "Lower arm extended, upper arm supporting head",
             "Head tilted to allow drainage",
-            "Consider NPA if trained"
+            "Consider NPA if trained",
+            "Record AVPU (Alert/Voice/Pain/Unresponsive)"
           ],
           "intervention_type": "RECOVERY_POSITION",
-          "advice": ["3/4 prone protects airway and allows drainage"],
+          "advice": ["3/4 prone protects airway and allows drainage", "Document AVPU for handover"],
           "next": "drill_3_complete"
         },
         {
@@ -354,12 +402,32 @@
           "id": "drill_3_bls_decision",
           "type": "decision",
           "title": "CPR DECISION",
-          "prompt": "Still not breathing after airway repositioning. Consider CPR.",
+          "prompt": "Still not breathing after airway repositioning. Is the area SECURE (not under fire)?",
           "options": [
-            {"label": "CPR appropriate", "next": "drill_3_bls"},
-            {"label": "CPR not appropriate", "next": "drill_3_complete"}
+            {"label": "YES - Area secure", "next": "drill_3_bls_resources"},
+            {"label": "NO - Under fire", "next": "drill_3_bls_contraindicated"}
           ],
-          "warnings": ["Consider: tactical situation, resources, other casualties"]
+          "warnings": ["NEVER attempt CPR under effective enemy fire"]
+        },
+        {
+          "id": "drill_3_bls_contraindicated",
+          "type": "triage_assignment",
+          "title": "CPR NOT SAFE",
+          "prompt": "Under fire + not breathing = DEAD. CPR would endanger rescuer.",
+          "category": "DEAD",
+          "warnings": ["Doctrine: Under fire, not breathing = mark DEAD and move on"],
+          "next": "drill_3_complete"
+        },
+        {
+          "id": "drill_3_bls_resources",
+          "type": "decision",
+          "title": "CPR RESOURCES",
+          "prompt": "Do you have resources for CPR? (Time, personnel, no other P1 casualties)",
+          "options": [
+            {"label": "YES - CPR appropriate", "next": "drill_3_bls"},
+            {"label": "NO - Resources needed elsewhere", "next": "drill_3_complete"}
+          ],
+          "warnings": ["Consider: other casualties, tactical situation, evacuation timeline"]
         },
         {
           "id": "drill_3_bls",
@@ -367,13 +435,16 @@
           "title": "BASIC LIFE SUPPORT",
           "prompt": "Commence CPR if resources allow",
           "actions": [
-            "30 chest compressions",
-            "2 rescue breaths",
+            "30 chest compressions at 100-120/min",
+            "Compress 5-6cm depth",
+            "Allow full chest recoil",
+            "2 rescue breaths (1 second each)",
             "Continue 30:2 ratio",
-            "Reassess every 2 minutes"
+            "Reassess every 2 minutes",
+            "Send for AED if available"
           ],
           "intervention_type": "CPR",
-          "warnings": ["Tactical situation dependent", "Resource intensive"],
+          "warnings": ["Tactical situation dependent", "Resource intensive", "Stop if: professional takes over, you are exhausted, or casualty recovers"],
           "next": "drill_3_complete"
         },
         {
@@ -391,67 +462,100 @@
       "id": "drill_4",
       "name": "Drill 4: Suspected Spinal Injury",
       "march_component": "A",
-      "description": "TODO: Content needed from TCCC(UK) ASM TM Section 5.4",
+      "description": "Airway management with spinal precautions - TM Section 5.4",
       "nodes": [
         {
           "id": "drill_4_start",
-          "type": "instruction",
+          "type": "action",
           "title": "SPINAL PRECAUTIONS",
-          "prompt": "[TODO: Reference needed] Maintain manual in-line stabilisation.",
-          "warnings": ["Do NOT use head tilt"],
+          "prompt": "Maintain manual in-line stabilisation throughout assessment",
+          "actions": [
+            "Kneel at casualty's head",
+            "Place hands either side of head",
+            "Hold head in neutral position",
+            "Maintain stabilisation throughout"
+          ],
+          "warnings": ["Do NOT use head tilt - risk of spinal cord damage"],
           "next": "drill_4_jaw_thrust"
         },
         {
           "id": "drill_4_jaw_thrust",
           "type": "action",
           "title": "JAW THRUST",
-          "prompt": "[TODO: Reference needed] Open airway using jaw thrust manoeuvre.",
+          "prompt": "Open airway using jaw thrust manoeuvre only",
           "actions": [
-            "[TODO: Step 1]",
-            "[TODO: Step 2]",
-            "[TODO: Step 3]"
+            "Place fingers behind angles of jaw",
+            "Push jaw forward and upward",
+            "Keep head in neutral position",
+            "Use thumbs to open mouth if needed"
           ],
+          "advice": ["Jaw thrust opens airway without moving the spine"],
           "next": "drill_4_breathing_check"
         },
         {
           "id": "drill_4_breathing_check",
           "type": "decision",
           "title": "BREATHING CHECK",
-          "prompt": "Is the casualty breathing? (Look, listen, feel 10 sec)",
+          "prompt": "Is the casualty breathing? (Look, listen, feel for up to 10 seconds)",
           "options": [
-            {"label": "YES", "next": "drill_4_npa"},
-            {"label": "NO", "next": "drill_4_not_breathing"}
+            {"label": "YES - Breathing", "next": "drill_4_npa"},
+            {"label": "NO - Not breathing", "next": "drill_4_not_breathing"}
           ]
         },
         {
           "id": "drill_4_npa",
           "type": "action",
           "title": "NASOPHARYNGEAL AIRWAY",
-          "prompt": "[TODO: Reference needed] Consider NPA - preferred over OPA for spinal.",
+          "prompt": "Insert NPA to maintain airway. NPA preferred over OPA for spinal injury.",
           "actions": [
-            "[TODO: NPA insertion steps]"
+            "Select appropriate size (nostril to earlobe)",
+            "Lubricate with water-based gel",
+            "Insert bevel towards septum",
+            "Advance gently along floor of nose",
+            "Secure with safety pin if required"
           ],
           "intervention_type": "NPA",
+          "warnings": ["NPA preferred - OPA may cause vomiting and spine movement"],
           "next": "drill_4_complete"
         },
         {
           "id": "drill_4_not_breathing",
           "type": "instruction",
           "title": "NOT BREATHING",
-          "prompt": "[TODO: Reference needed] Maintain jaw thrust, reassess.",
-          "warnings": ["Maintain spinal precautions"],
+          "prompt": "Maintain jaw thrust and reassess. Clear any visible obstruction.",
+          "warnings": ["Maintain spinal precautions", "Do NOT perform head tilt"],
           "next": "drill_4_bls_decision"
         },
         {
           "id": "drill_4_bls_decision",
           "type": "decision",
           "title": "CPR DECISION",
-          "prompt": "Still not breathing. Consider CPR with spinal precautions.",
+          "prompt": "Still not breathing. Is the area SECURE (not under fire)?",
           "options": [
-            {"label": "CPR appropriate", "next": "drill_4_bls"},
-            {"label": "CPR not appropriate", "next": "drill_4_complete"}
+            {"label": "YES - Area secure", "next": "drill_4_bls_resources"},
+            {"label": "NO - Under fire", "next": "drill_4_bls_contraindicated"}
           ],
-          "warnings": ["Consider: tactical situation, resources, other casualties"]
+          "warnings": ["NEVER attempt CPR under effective enemy fire"]
+        },
+        {
+          "id": "drill_4_bls_contraindicated",
+          "type": "triage_assignment",
+          "title": "CPR NOT SAFE",
+          "prompt": "Under fire + not breathing = DEAD. CPR would endanger rescuer.",
+          "category": "DEAD",
+          "warnings": ["Doctrine: Under fire, not breathing = mark DEAD and move on"],
+          "next": "drill_4_complete"
+        },
+        {
+          "id": "drill_4_bls_resources",
+          "type": "decision",
+          "title": "CPR RESOURCES",
+          "prompt": "Do you have resources for CPR? (Time, personnel, no other P1 casualties)",
+          "options": [
+            {"label": "YES - CPR appropriate", "next": "drill_4_bls"},
+            {"label": "NO - Resources needed elsewhere", "next": "drill_4_complete"}
+          ],
+          "warnings": ["Consider: other casualties, tactical situation, evacuation timeline"]
         },
         {
           "id": "drill_4_bls",
@@ -460,13 +564,15 @@
           "prompt": "Commence CPR maintaining spinal alignment",
           "actions": [
             "Maintain jaw thrust during ventilations",
-            "30 chest compressions",
+            "30 chest compressions at 100-120/min",
+            "Compress 5-6cm depth",
             "2 rescue breaths via jaw thrust",
             "Continue 30:2 ratio",
-            "Reassess every 2 minutes"
+            "Reassess every 2 minutes",
+            "Send for AED if available"
           ],
           "intervention_type": "CPR",
-          "warnings": ["Maintain spinal precautions throughout"],
+          "warnings": ["Maintain spinal precautions throughout", "Stop if: professional takes over, you are exhausted, or casualty recovers"],
           "next": "drill_4_complete"
         },
         {
@@ -484,23 +590,30 @@
       "id": "drill_5",
       "name": "Drill 5: Face Down / Obstructed Airway",
       "march_component": "A",
-      "description": "TODO: Content needed from TCCC(UK) ASM TM Section 5.5",
+      "description": "Log roll and airway clearance - TM Section 5.5",
       "nodes": [
         {
           "id": "drill_5_start",
           "type": "instruction",
           "title": "OBSTRUCTED AIRWAY",
-          "prompt": "[TODO: Reference needed] Casualty face down or airway obstructed.",
+          "prompt": "Casualty face down or airway obstructed. Must access airway.",
+          "advice": ["Log roll required to assess and clear airway"],
           "next": "drill_5_log_roll"
         },
         {
           "id": "drill_5_log_roll",
           "type": "action",
           "title": "LOG ROLL",
-          "prompt": "[TODO: Reference needed] Log roll to assess airway.",
+          "prompt": "Log roll casualty to access airway",
           "actions": [
-            "[TODO: Log roll steps]"
+            "Position yourself at casualty's side",
+            "Place far arm above head",
+            "Bend far leg at knee",
+            "Roll casualty towards you as one unit",
+            "Support head throughout roll",
+            "Position on back or side"
           ],
+          "advice": ["Control the roll - do not twist spine"],
           "next": "drill_5_clear_obstruction"
         },
         {
@@ -509,19 +622,22 @@
           "title": "VISIBLE OBSTRUCTION?",
           "prompt": "Is there visible obstruction in the airway?",
           "options": [
-            {"label": "YES", "next": "drill_5_remove_obstruction"},
-            {"label": "NO", "next": "drill_3_open_airway"}
+            {"label": "YES - Obstruction visible", "next": "drill_5_remove_obstruction"},
+            {"label": "NO - Airway clear", "next": "drill_3_open_airway"}
           ]
         },
         {
           "id": "drill_5_remove_obstruction",
           "type": "action",
           "title": "CLEAR OBSTRUCTION",
-          "prompt": "[TODO: Reference needed] Remove visible obstruction.",
+          "prompt": "Remove visible obstruction from airway",
           "actions": [
-            "[TODO: Clearance steps]",
-            "Suction if available (medic)"
+            "Open mouth (finger sweep only if object visible)",
+            "Remove visible debris, blood, vomit",
+            "Do NOT push object deeper",
+            "Suction if available (medic only)"
           ],
+          "warnings": ["Only remove VISIBLE obstruction", "Do NOT perform blind finger sweep"],
           "next": "drill_3_open_airway"
         }
       ]
@@ -552,10 +668,38 @@
         {
           "id": "drill_6_chest_seal",
           "type": "action",
-          "title": "CHEST SEAL",
-          "prompt": "Apply chest seal. Check for exit wound - seal both.",
-          "actions": ["Apply vented seal (preferred)", "Position wounded side DOWN"],
+          "title": "SEAL ENTRY WOUND",
+          "prompt": "Apply chest seal to ENTRY wound.",
+          "actions": ["Apply vented seal (preferred)", "Ensure good adhesion to skin"],
           "intervention_type": "CHEST_SEAL",
+          "next": "drill_6_exit_wound"
+        },
+        {
+          "id": "drill_6_exit_wound",
+          "type": "decision",
+          "title": "CHECK EXIT WOUND",
+          "prompt": "Check back/sides for EXIT wound. Is there an exit wound?",
+          "options": [
+            {"label": "YES - Exit wound found", "next": "drill_6_seal_exit"},
+            {"label": "NO - No exit wound", "next": "drill_6_position"}
+          ],
+          "warnings": ["CRITICAL: Missing exit wound seal causes tension pneumothorax"]
+        },
+        {
+          "id": "drill_6_seal_exit",
+          "type": "action",
+          "title": "SEAL EXIT WOUND",
+          "prompt": "Apply chest seal to EXIT wound.",
+          "actions": ["Seal exit wound same as entry", "Check seal adhesion"],
+          "intervention_type": "CHEST_SEAL",
+          "next": "drill_6_position"
+        },
+        {
+          "id": "drill_6_position",
+          "type": "instruction",
+          "title": "POSITION CASUALTY",
+          "prompt": "Position casualty with wounded side DOWN if possible.",
+          "advice": ["Wounded side down allows uninjured lung to expand fully"],
           "next": "drill_6_tension_check"
         },
         {
@@ -654,9 +798,9 @@
             "Stop any ongoing bleeding",
             "Elevate legs (if no spinal injury)",
             "Keep casualty warm",
-            "Reassure casualty",
-            "Do NOT give food or drink"
+            "Reassure casualty"
           ],
+          "warnings": ["NO food or drink - especially if abdominal injury suspected"],
           "next": "drill_8_complete"
         },
         {
@@ -704,7 +848,7 @@
       "id": "drill_10",
       "name": "Drill 10: Burns",
       "march_component": "H",
-      "description": "TODO: Content needed from TCCC(UK) ASM TM Section 5.10",
+      "description": "Burns assessment and management - TM Section 5.10",
       "nodes": [
         {
           "id": "drill_10_start",
@@ -712,48 +856,116 @@
           "title": "BURNS ASSESSMENT",
           "prompt": "Are there burns present?",
           "options": [
-            {"label": "YES", "next": "drill_10_remove_source"},
-            {"label": "NO", "next": "drill_11_start"}
+            {"label": "YES - Burns present", "next": "drill_10_airway_burn"},
+            {"label": "NO - No burns", "next": "drill_11_start"}
           ]
+        },
+        {
+          "id": "drill_10_airway_burn",
+          "type": "decision",
+          "title": "AIRWAY BURN?",
+          "prompt": "Signs of airway burn? (Facial burns, singed nasal hair, soot in mouth/nose, hoarse voice)",
+          "options": [
+            {"label": "YES - Airway burn suspected", "next": "drill_10_airway_warning"},
+            {"label": "NO - No airway involvement", "next": "drill_10_remove_source"}
+          ]
+        },
+        {
+          "id": "drill_10_airway_warning",
+          "type": "instruction",
+          "title": "AIRWAY BURN - URGENT",
+          "prompt": "Airway burns cause delayed swelling. EARLY EVACUATION ESSENTIAL.",
+          "warnings": ["CRITICAL: Airway burns = P1 - IMMEDIATE evacuation", "Swelling may obstruct airway within hours"],
+          "next": "drill_10_remove_source"
         },
         {
           "id": "drill_10_remove_source",
           "type": "action",
-          "title": "REMOVE FROM SOURCE",
-          "prompt": "[TODO: Reference needed] Remove casualty from burn source. Stop the burning process.",
+          "title": "STOP THE BURNING",
+          "prompt": "Remove casualty from burn source. Stop the burning process.",
           "actions": [
-            "[TODO: Steps to stop burning]"
+            "Move casualty away from heat source",
+            "Remove smouldering clothing",
+            "Remove jewellery near burn area",
+            "Do NOT remove clothing stuck to burn"
           ],
-          "next": "drill_10_cool"
+          "warnings": ["Do NOT remove clothing adhered to skin"],
+          "next": "drill_10_burn_type"
+        },
+        {
+          "id": "drill_10_burn_type",
+          "type": "decision",
+          "title": "BURN TYPE",
+          "prompt": "What type of burn?",
+          "options": [
+            {"label": "Thermal (heat/flame)", "next": "drill_10_cool"},
+            {"label": "Chemical", "next": "drill_10_chemical"},
+            {"label": "Phosphorus", "next": "drill_10_phosphorus"}
+          ]
+        },
+        {
+          "id": "drill_10_chemical",
+          "type": "action",
+          "title": "CHEMICAL BURN",
+          "prompt": "Chemical burn - remove contamination",
+          "actions": [
+            "Strip ALL contaminated clothing",
+            "Brush off dry chemicals first",
+            "Irrigate with copious water for 20+ minutes",
+            "Do NOT neutralise with other chemicals"
+          ],
+          "warnings": ["Contaminated clothing continues burning tissue"],
+          "next": "drill_10_cover"
+        },
+        {
+          "id": "drill_10_phosphorus",
+          "type": "action",
+          "title": "PHOSPHORUS BURN",
+          "prompt": "White phosphorus burn - keep wet at all times",
+          "actions": [
+            "Keep phosphorus particles WET",
+            "Do NOT let phosphorus dry out",
+            "Remove visible particles with wet forceps",
+            "Cover with wet dressing"
+          ],
+          "warnings": ["CRITICAL: Dry phosphorus reignites in air", "Keep continuously wet until surgical care"],
+          "next": "drill_10_cover"
         },
         {
           "id": "drill_10_cool",
           "type": "action",
           "title": "COOL BURNS",
-          "prompt": "[TODO: Reference needed] Cool burns with clean water if available.",
+          "prompt": "Cool burns with clean cool water for twenty minutes",
           "actions": [
-            "[TODO: Cooling steps]",
-            "Do NOT use ice"
+            "Use clean cool running water",
+            "Cool for 20 minutes minimum if possible",
+            "Stop if casualty becomes cold",
+            "Do NOT use ice or iced water - causes frostbite"
           ],
-          "warnings": ["Do NOT use ice or very cold water"],
+          "warnings": ["Do NOT use ice - causes frostbite on damaged tissue", "Watch for hypothermia especially in large burns"],
           "next": "drill_10_cover"
         },
         {
           "id": "drill_10_cover",
           "type": "action",
           "title": "COVER BURNS",
-          "prompt": "[TODO: Reference needed] Cover burns with cling film or clean dressing.",
+          "prompt": "Cover burns with cling film or clean non-fluffy dressing",
           "actions": [
-            "[TODO: Covering steps]"
+            "Apply cling film lengthways (not wrapped around)",
+            "Or use clean non-fluffy dressing",
+            "Do NOT burst blisters",
+            "Do NOT apply creams or lotions"
           ],
           "intervention_type": "BURNS_DRESSING",
+          "advice": ["Cling film protects, reduces pain, allows assessment"],
           "next": "drill_10_tbsa"
         },
         {
           "id": "drill_10_tbsa",
           "type": "instruction",
           "title": "ASSESS %TBSA",
-          "prompt": "[TODO: Reference needed] Estimate total body surface area affected using Rule of 9s.",
+          "prompt": "Estimate total body surface area affected using Rule of 9s",
+          "advice": ["Head: 9%, Each arm: 9%, Chest: 18%, Back: 18%, Each leg: 18%, Groin: 1%", "Palm of casualty's hand = 1% TBSA"],
           "next": "drill_10_complete"
         },
         {
@@ -811,7 +1023,8 @@
           "id": "drill_12_start",
           "type": "casrep_form",
           "title": "CASREP",
-          "prompt": "Complete Casualty Report",
+          "prompt": "Complete Casualty Report. Confirm grid reference/location coordinates.",
+          "advice": ["Grid reference is critical - MEDEVAC cannot find you without accurate location"],
           "fields": ["callsign", "grid_ref", "casualty_count", "p1_count", "p2_count", "p3_count", "urgency", "life_threats"],
           "next": "drill_12_complete"
         },
@@ -840,23 +1053,101 @@
           "id": "drill_13_tq_check",
           "type": "decision",
           "title": "TOURNIQUET CHECK",
-          "prompt": "Has a tourniquet been in place for 2+ hours?",
+          "prompt": "Is there a tourniquet applied?",
           "options": [
-            {"label": "YES", "next": "drill_13_tq_conversion"},
-            {"label": "NO", "next": "drill_13_checklist"},
-            {"label": "No tourniquet applied", "next": "drill_13_checklist"}
+            {"label": "YES", "next": "drill_13_tq_time_check"},
+            {"label": "NO", "next": "drill_13_checklist"}
           ]
         },
         {
-          "id": "drill_13_tq_conversion",
+          "id": "drill_13_tq_time_check",
           "type": "decision",
-          "title": "CONVERSION ASSESSMENT",
-          "prompt": "Consider tourniquet conversion. Is the situation stable? (Not under fire, casualty stable, evacuation not imminent)",
+          "title": "TOURNIQUET TIME",
+          "prompt": "Has the tourniquet been in place for MORE than 2 hours?",
           "options": [
-            {"label": "YES - Attempt conversion", "next": "drill_13_tq_convert_steps"},
-            {"label": "NO - Leave tourniquet", "next": "drill_13_tq_document"}
-          ],
-          "warnings": ["Only convert if tactically safe and casualty stable"]
+            {"label": "YES - Over 2 hours", "next": "drill_13_tq_no_remove"},
+            {"label": "NO - Under 2 hours", "next": "drill_13_tq_criteria1"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_no_remove",
+          "type": "instruction",
+          "title": "DO NOT REMOVE",
+          "prompt": "Tourniquet in place >2 hours. DO NOT REMOVE - risk of reperfusion injury and death.",
+          "warnings": ["CRITICAL: Removing tourniquet after 2+ hours releases toxins into circulation", "Leave tourniquet in place until surgical care available"],
+          "next": "drill_13_tq_document"
+        },
+        {
+          "id": "drill_13_tq_criteria1",
+          "type": "decision",
+          "title": "CONVERSION CRITERIA 1/4",
+          "prompt": "Is the casualty in SHOCK? (Pale, cold, rapid pulse, altered consciousness)",
+          "options": [
+            {"label": "YES - Shock present", "next": "drill_13_tq_shock_block"},
+            {"label": "NO - No shock signs", "next": "drill_13_tq_criteria2"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_shock_block",
+          "type": "instruction",
+          "title": "KEEP TOURNIQUET",
+          "prompt": "Casualty in shock. DO NOT attempt conversion - cardiovascular collapse risk.",
+          "warnings": ["Shock + tourniquet removal = cardiovascular collapse"],
+          "next": "drill_13_tq_document"
+        },
+        {
+          "id": "drill_13_tq_criteria2",
+          "type": "decision",
+          "title": "CONVERSION CRITERIA 2/4",
+          "prompt": "Is there AMPUTATION or mangled extremity?",
+          "options": [
+            {"label": "YES - Amputation/mangled", "next": "drill_13_tq_amputation_block"},
+            {"label": "NO - Limb intact", "next": "drill_13_tq_criteria3"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_amputation_block",
+          "type": "instruction",
+          "title": "KEEP TOURNIQUET",
+          "prompt": "Amputated or mangled extremity. Tourniquet must remain in place.",
+          "warnings": ["Amputation requires permanent tourniquet until surgical care"],
+          "next": "drill_13_tq_document"
+        },
+        {
+          "id": "drill_13_tq_criteria3",
+          "type": "decision",
+          "title": "CONVERSION CRITERIA 3/4",
+          "prompt": "Can you MONITOR the casualty continuously after conversion?",
+          "options": [
+            {"label": "YES - Can monitor", "next": "drill_13_tq_criteria4"},
+            {"label": "NO - Cannot monitor", "next": "drill_13_tq_monitor_block"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_monitor_block",
+          "type": "instruction",
+          "title": "KEEP TOURNIQUET",
+          "prompt": "Cannot monitor casualty continuously. Leave tourniquet in place.",
+          "warnings": ["Bleeding may restart - must be able to detect and respond"],
+          "next": "drill_13_tq_document"
+        },
+        {
+          "id": "drill_13_tq_criteria4",
+          "type": "decision",
+          "title": "CONVERSION CRITERIA 4/4",
+          "prompt": "Is the tactical situation STABLE? (Not under fire, not about to move)",
+          "options": [
+            {"label": "YES - Stable situation", "next": "drill_13_tq_convert_steps"},
+            {"label": "NO - Unstable situation", "next": "drill_13_tq_tactical_block"}
+          ]
+        },
+        {
+          "id": "drill_13_tq_tactical_block",
+          "type": "instruction",
+          "title": "KEEP TOURNIQUET",
+          "prompt": "Tactical situation unstable. Leave tourniquet in place.",
+          "warnings": ["Only convert in stable, controlled environment"],
+          "next": "drill_13_tq_document"
         },
         {
           "id": "drill_13_tq_convert_steps",
@@ -879,9 +1170,28 @@
           "title": "CONVERSION RESULT",
           "prompt": "Was conversion successful?",
           "options": [
-            {"label": "YES - Bleeding controlled", "next": "drill_13_tq_document"},
+            {"label": "YES - Bleeding controlled", "next": "drill_13_tq_monitor"},
             {"label": "NO - Tourniquet re-applied", "next": "drill_13_tq_document"}
           ]
+        },
+        {
+          "id": "drill_13_tq_monitor",
+          "type": "instruction",
+          "title": "MONITOR FOR REBLEEDING",
+          "prompt": "Conversion successful. MONITOR closely for bleeding return.",
+          "warnings": ["If bleeding restarts: immediately return to Drill 2 (Massive Bleeding)", "Check dressing every 5 minutes"],
+          "next": "drill_13_tq_rebleed_check"
+        },
+        {
+          "id": "drill_13_tq_rebleed_check",
+          "type": "decision",
+          "title": "BLEEDING RECHECK",
+          "prompt": "Has bleeding restarted?",
+          "options": [
+            {"label": "YES - Bleeding returned", "next": "drill_2_start"},
+            {"label": "NO - Bleeding controlled", "next": "drill_13_tq_document"}
+          ],
+          "warnings": ["If bleeding restarts, go immediately to Drill 2"]
         },
         {
           "id": "drill_13_tq_document",
@@ -896,6 +1206,7 @@
           "title": "MONITORING",
           "prompt": "Complete checks:",
           "options": ["Tourniquet time checked", "Dressings intact", "Chest seal secure", "Casualty warm", "Airway maintained"],
+          "warnings": ["If chest seal applied: do NOT place casualty prone - risk of seal dislodgement"],
           "next": "drill_13_reassess"
         },
         {
@@ -918,6 +1229,94 @@
             {"label": "Casualty handed over", "next": "end"},
             {"label": "Other casualties", "next": "drill_1_select_casualty"}
           ]
+        }
+      ]
+    },
+
+    "mist_report": {
+      "id": "mist_report",
+      "name": "MIST(AT) Report",
+      "description": "Structured handover report",
+      "nodes": [
+        {
+          "id": "mist_start",
+          "type": "instruction",
+          "title": "MIST(AT) HANDOVER",
+          "prompt": "Complete MIST(AT) report for casualty handover. Use 24 hour clock for all times.",
+          "advice": ["MIST(AT) ensures complete handover information"],
+          "next": "mist_mechanism"
+        },
+        {
+          "id": "mist_mechanism",
+          "type": "instruction",
+          "title": "M - MECHANISM",
+          "prompt": "Describe the mechanism of injury - how was the casualty wounded?",
+          "advice": ["IED, GSW, blast, fall, vehicle, etc."],
+          "next": "mist_injury"
+        },
+        {
+          "id": "mist_injury",
+          "type": "instruction",
+          "title": "I - INJURY",
+          "prompt": "Describe injuries found during assessment",
+          "advice": ["Location, type, severity of each injury"],
+          "next": "mist_signs"
+        },
+        {
+          "id": "mist_signs",
+          "type": "instruction",
+          "title": "S - SIGNS",
+          "prompt": "Report vital signs and AVPU",
+          "advice": ["AVPU level, respiratory status, shock signs, bleeding status"],
+          "next": "mist_treatment"
+        },
+        {
+          "id": "mist_treatment",
+          "type": "instruction",
+          "title": "T - TREATMENT",
+          "prompt": "List all treatment given with times",
+          "advice": ["Tourniquets, chest seals, airways, medications, etc. with times"],
+          "next": "mist_complete"
+        },
+        {
+          "id": "mist_complete",
+          "type": "checkpoint",
+          "title": "MIST COMPLETE",
+          "prompt": "MIST(AT) report ready for handover",
+          "is_terminal": true
+        }
+      ]
+    },
+
+    "bls": {
+      "id": "bls",
+      "name": "Basic Life Support",
+      "description": "CPR and AED protocol",
+      "nodes": [
+        {
+          "id": "bls_start",
+          "type": "action",
+          "title": "BASIC LIFE SUPPORT",
+          "prompt": "Commence CPR following Resuscitation Council UK guidelines",
+          "actions": [
+            "30 chest compressions at 100-120/min",
+            "Compress 5-6cm depth",
+            "Allow full chest recoil",
+            "2 rescue breaths (1 second each)",
+            "Continue 30:2 ratio",
+            "Send for AED/defibrillator",
+            "Use AED as soon as available"
+          ],
+          "warnings": ["Stop if: professional takes over, you are exhausted, or casualty recovers"],
+          "intervention_type": "CPR",
+          "next": "bls_complete"
+        },
+        {
+          "id": "bls_complete",
+          "type": "checkpoint",
+          "title": "BLS COMPLETE",
+          "prompt": "Continue CPR until professional help arrives or casualty recovers",
+          "is_terminal": true
         }
       ]
     }
@@ -1002,14 +1401,40 @@
       "intervention_type": "PAIN_RELIEF",
       "prompts": [
         {
+          "id": "pain_relief_avpu",
+          "type": "single_select",
+          "title": "AVPU CHECK",
+          "prompt": "What is the casualty's AVPU level?",
+          "options": ["A - Alert", "V - Voice", "P - Pain", "U - Unresponsive"],
+          "next": "pain_relief_avpu_check"
+        },
+        {
+          "id": "pain_relief_avpu_check",
+          "type": "decision",
+          "title": "FENTANYL SAFETY",
+          "prompt": "Is the casualty Alert or responding to Voice? (A or V on AVPU)",
+          "options": [
+            {"label": "YES - Alert or Voice", "next": "pain_relief_assess"},
+            {"label": "NO - Pain or Unresponsive", "next": "pain_relief_fentanyl_blocked"}
+          ]
+        },
+        {
+          "id": "pain_relief_fentanyl_blocked",
+          "type": "instruction",
+          "title": "FENTANYL CONTRAINDICATED",
+          "prompt": "Casualty P or U on AVPU. DO NOT give fentanyl - respiratory arrest risk.",
+          "warnings": ["CRITICAL: Fentanyl in reduced consciousness = respiratory arrest", "Only oral analgesia if casualty can swallow safely"],
+          "next": "pain_relief_defer"
+        },
+        {
           "id": "pain_relief_assess",
           "type": "decision",
           "title": "PAIN ASSESSMENT",
-          "prompt": "Assess pain level and consciousness",
+          "prompt": "Assess pain level and route",
           "options": [
-            {"label": "Conscious - can take oral", "next": "pain_relief_oral"},
-            {"label": "Conscious - IV/IM needed", "next": "pain_relief_iv"},
-            {"label": "Unconscious - defer", "next": "pain_relief_defer"}
+            {"label": "Can take oral medication", "next": "pain_relief_oral"},
+            {"label": "IV/IM needed (medic)", "next": "pain_relief_iv"},
+            {"label": "Defer analgesia", "next": "pain_relief_defer"}
           ]
         },
         {
@@ -1033,8 +1458,10 @@
             "Establish access if needed",
             "Administer as per protocol",
             "Monitor for adverse effects",
-            "Document medication, dose, route, time"
+            "Document medication, dose, route, time",
+            "For fentanyl: write F + time on cheek"
           ],
+          "advice": ["Mark F and administration time on casualty's cheek to prevent overdose"],
           "role_required": "medic"
         },
         {
